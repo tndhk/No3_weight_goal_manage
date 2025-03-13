@@ -6,6 +6,8 @@ import DataInput from './pages/DataInput';
 import Analysis from './pages/Analysis';
 import FitbitConnect from './pages/FitbitConnect';
 import FitbitDashboard from './pages/FitbitDashboard';
+import WeightGoals from './pages/WeightGoals';
+import WeightGoalDetail from './pages/WeightGoalDetail';
 import './App.css';
 
 function App() {
@@ -24,6 +26,10 @@ function App() {
             <Route path="/fitbit/success" element={<FitbitConnect />} />
             <Route path="/fitbit/error" element={<FitbitConnect />} />
             <Route path="/fitbit/dashboard" element={<FitbitDashboard />} />
+            
+            {/* 体重目標関連のルート */}
+            <Route path="/fitbit/goals" element={<WeightGoals />} />
+            <Route path="/fitbit/goal/:goalId" element={<WeightGoalDetail />} />
           </Routes>
         </div>
       </div>

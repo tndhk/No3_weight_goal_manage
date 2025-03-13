@@ -1,0 +1,556 @@
+openapi: 3.0.0
+info:
+  title: Fitbit Weight Tracker API
+  description: Fitbit体重トラッカーアプリケーションのAPI
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: 開発環境
+paths:
+  /api/data:
+    get:
+      summary: すべてのデータを取得
+      description: アプリケーションに保存されているすべてのデータを取得します
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Data'
+    post:
+      summary: 新しいデータを追加
+      description: 新しいデータをアプリケーションに追加します
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataInput'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Data'
+        '400':
+          description: 無効なリクエスト
+
+  /api/data/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: データID
+    get:
+      summary: IDによるデータ取得
+      description: 特定のIDを持つデータを取得します
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Data'
+        '404':
+          description: データが見つかりません
+    put:
+      summary: データを更新
+      description: 特定のIDを持つデータを更新します
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataInput'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Data'
+        '404':
+          description: データが見つかりません
+    delete:
+      summary: データを削除
+      description: 特定のIDを持つデータを削除します
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: データが見つかりません
+
+  /api/fitbit/status:
+    get:
+      summary: Fitbit認証状態確認
+      description: 現在のFitbit認証状態を確認します
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_authenticated:
+                    type: boolean
+                  expires_at:
+                    type: string
+                    format: date-time
+                  scope:
+                    type: string
+
+  /api/fitbit/auth:
+    get:
+      summary: Fitbit認証開始
+      description: Fitbitの認証フローを開始します
+      responses:
+        '302':
+          description: Fitbit認証ページへリダイレクト
+
+  /api/fitbit/weight:
+    get:
+      summary: Fitbit体重データ取得
+      description: Fitbitから体重データを取得します
+      parameters:
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日 (YYYY-MM-DD)
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 終了日 (YYYY-MM-DD)
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FitbitWeight'
+        '401':
+          description: 認証エラー
+
+  /api/fitbit/weight/analysis:
+    get:
+      summary: 体重データ分析
+      description: 体重データの分析結果を取得します
+      parameters:
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日 (YYYY-MM-DD)
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 終了日 (YYYY-MM-DD)
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  analysis:
+                    $ref: '#/components/schemas/WeightAnalysis'
+        '404':
+          description: データがありません
+
+  /api/fit/goal:
+    get:
+      summary: 体重目標の取得
+      description: ユーザーの体重目標を取得します
+      parameters:
+        - name: active_only
+          in: query
+          schema:
+            type: boolean
+          description: trueの場合、達成済みでない目標のみを返します
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeightGoal'
+    post:
+      summary: 新しい体重目標を作成
+      description: 新しい体重目標を設定します
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeightGoalInput'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeightGoal'
+        '400':
+          description: 無効なリクエスト
+
+  /api/fit/goal/{goal_id}:
+    parameters:
+      - name: goal_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: 目標ID
+    get:
+      summary: 特定の体重目標を取得
+      description: 特定のIDを持つ体重目標を取得します
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeightGoal'
+        '404':
+          description: 目標が見つかりません
+    put:
+      summary: 体重目標を更新
+      description: 特定のIDを持つ体重目標を更新します
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeightGoalUpdate'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeightGoal'
+        '404':
+          description: 目標が見つかりません
+    delete:
+      summary: 体重目標を削除
+      description: 特定のIDを持つ体重目標を削除します
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: 目標が見つかりません
+
+  /api/fit/weight/diff:
+    get:
+      summary: 実測値と目標の差分を取得
+      description: 実際の体重と目標体重の差分を取得します
+      parameters:
+        - name: goal_id
+          in: query
+          schema:
+            type: integer
+          description: 目標ID（指定しない場合はアクティブな目標を使用）
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeightDiff'
+        '404':
+          description: 目標または体重データが見つかりません
+
+  /api/fit/weight/projection:
+    get:
+      summary: 体重予測データを取得
+      description: 現在の進捗から将来の体重を予測します
+      parameters:
+        - name: goal_id
+          in: query
+          schema:
+            type: integer
+          description: 目標ID（指定しない場合はアクティブな目標を使用）
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+          description: 予測日数
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeightProjection'
+        '400':
+          description: 予測に十分なデータがありません
+        '404':
+          description: 目標が見つかりません
+
+components:
+  schemas:
+    Data:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        value:
+          type: number
+        category:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - value
+        - category
+        - created_at
+
+    DataInput:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+        category:
+          type: string
+      required:
+        - name
+        - value
+        - category
+
+    FitbitWeight:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+        weight:
+          type: number
+        bmi:
+          type: number
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+          format: time
+        source:
+          type: string
+        log_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - weight
+        - date
+        - created_at
+
+    WeightAnalysis:
+      type: object
+      properties:
+        count:
+          type: integer
+        min_weight:
+          type: number
+        max_weight:
+          type: number
+        avg_weight:
+          type: number
+        start_weight:
+          type: number
+        end_weight:
+          type: number
+        change:
+          type: number
+        period:
+          type: object
+          properties:
+            from_date:
+              type: string
+              format: date
+            to_date:
+              type: string
+              format: date
+        chart_data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              weight:
+                type: number
+
+    WeightGoal:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: string
+        target_weight:
+          type: number
+        target_date:
+          type: string
+          format: date
+        start_weight:
+          type: number
+        start_date:
+          type: string
+          format: date
+        description:
+          type: string
+        is_achieved:
+          type: boolean
+        achieved_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        days_remaining:
+          type: integer
+        progress_percentage:
+          type: number
+      required:
+        - id
+        - user_id
+        - target_weight
+        - target_date
+        - start_weight
+        - start_date
+        - is_achieved
+
+    WeightGoalInput:
+      type: object
+      properties:
+        target_weight:
+          type: number
+        target_date:
+          type: string
+          format: date
+        start_weight:
+          type: number
+        description:
+          type: string
+      required:
+        - target_weight
+        - target_date
+
+    WeightGoalUpdate:
+      type: object
+      properties:
+        target_weight:
+          type: number
+        target_date:
+          type: string
+          format: date
+        description:
+          type: string
+        is_achieved:
+          type: boolean
+      
+    WeightDiff:
+      type: object
+      properties:
+        goal:
+          $ref: '#/components/schemas/WeightGoal'
+        current_weight:
+          type: number
+        weight_to_lose:
+          type: number
+        days_remaining:
+          type: integer
+        daily_weight_diffs:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              target_weight:
+                type: number
+              actual_weight:
+                type: number
+              difference:
+                type: number
+        avg_actual_change_per_day:
+          type: number
+
+    WeightProjection:
+      type: object
+      properties:
+        goal:
+          $ref: '#/components/schemas/WeightGoal'
+        latest_weight:
+          type: number
+        avg_change_per_day:
+          type: number
+        projected_completion_date:
+          type: string
+          format: date
+        weight_projections:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              projected_weight:
+                type: number

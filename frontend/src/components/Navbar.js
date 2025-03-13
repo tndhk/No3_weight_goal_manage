@@ -36,6 +36,9 @@ const Navbar = () => {
               <Link to="/fitbit/dashboard" className="dropdown-item">
                 Weight Dashboard
               </Link>
+              <Link to="/fitbit/goals" className="dropdown-item">
+                Weight Goals
+              </Link>
             </div>
           </li>
         </ul>
