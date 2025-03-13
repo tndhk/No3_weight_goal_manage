@@ -1,0 +1,121 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      # バックエンドのテスト
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install pytest
+          
+      - name: Run backend tests
+        run: |
+          cd backend
+          pytest
+      
+      # フロントエンドのテスト
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+          
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test -- --watchAll=false
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - uses: actions/checkout@v3
+      
+      # フロントエンドのビルド
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+          
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+          
+      - name: Archive frontend build
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build
+      
+      # バックエンドの確認
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          
+      - name: Archive backend code
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-code
+          path: |
+            backend
+            !backend/__pycache__
+            !backend/*.pyc
+            !backend/*.pyo
+            !backend/*.pyd
+            !backend/.pytest_cache
+            !backend/venv
+
+  # デプロイステップは実際の環境に合わせて設定する必要があります
+  # 以下は例としてのみ記載しています
+  # deploy:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Download frontend build
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: frontend-build
+  #         path: frontend-build
+  #         
+  #     - name: Download backend code
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: backend-code
+  #         path: backend-code
+  #         
+  #     # ここにデプロイのステップを追加
+  #     # 例: Vercel, Railway.app, Heroku, AWS など
