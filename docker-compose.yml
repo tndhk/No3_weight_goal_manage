@@ -30,6 +30,10 @@ services:
       - FLASK_APP=app.py
       - FLASK_ENV=development
       - DATABASE_URL=sqlite:////app/instance/app.db
+      # Fitbit APIの環境変数（実際の値は.envファイルで設定）
+      - FITBIT_CLIENT_ID=${FITBIT_CLIENT_ID}
+      - FITBIT_CLIENT_SECRET=${FITBIT_CLIENT_SECRET}
+      - FITBIT_REDIRECT_URI=${FITBIT_REDIRECT_URI}
 
 volumes:
   sqlite_data:

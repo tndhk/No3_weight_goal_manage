@@ -25,6 +25,19 @@ const Navbar = () => {
               Analysis
             </Link>
           </li>
+          <li className="nav-item dropdown">
+            <span className="nav-link dropdown-toggle">
+              Fitbit
+            </span>
+            <div className="dropdown-menu">
+              <Link to="/fitbit/connect" className="dropdown-item">
+                Connect Account
+              </Link>
+              <Link to="/fitbit/dashboard" className="dropdown-item">
+                Weight Dashboard
+              </Link>
+            </div>
+          </li>
         </ul>
       </div>
     </nav>

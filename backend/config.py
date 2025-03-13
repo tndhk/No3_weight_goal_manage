@@ -16,6 +16,14 @@ class Config:
     
     # 実行環境
     ENV = os.environ.get('FLASK_ENV') or 'production'
+    
+    # Fitbit API設定
+    FITBIT_CLIENT_ID = os.environ.get('FITBIT_CLIENT_ID')
+    FITBIT_CLIENT_SECRET = os.environ.get('FITBIT_CLIENT_SECRET')
+    FITBIT_REDIRECT_URI = os.environ.get('FITBIT_REDIRECT_URI', 'http://localhost:5000/api/fitbit/callback')
+    FITBIT_AUTHORIZATION_URL = 'https://www.fitbit.com/oauth2/authorize'
+    FITBIT_TOKEN_URL = 'https://api.fitbit.com/oauth2/token'
+    FITBIT_API_BASE_URL = 'https://api.fitbit.com'
 
 class DevelopmentConfig(Config):
     DEBUG = True
